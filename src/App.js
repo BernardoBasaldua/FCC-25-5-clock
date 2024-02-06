@@ -1,25 +1,186 @@
-import logo from './logo.svg';
 import './App.css';
+import React, { useState, useEffect } from 'react';
+
+let initialBreak = 5;
+let initialSession = 1;
+//let initialStartStop = 'Start';
+let initialTimeLeft = initialSession * 60;
 
 function App() {
+  const[varBreak, setBreak] = useState(initialBreak);
+  const[varSession, setSession] = useState(initialSession);
+  //const[startStop, setStartStop] = useState(initialStartStop);
+  const [isRunning, setIsRunning] = useState(false);
+  const[titleTimer, setTitleTimer] = useState('Session');
+  const[timeLeft, setTimeLeft] = useState(initialTimeLeft);
+  //const [intervalId, setIntervalId] = useState(null);
+
+  const incrementBreak = () => {
+    if (varBreak < 60 && !isRunning) {
+      setBreak(varBreak + 1);
+      initialBreak = varBreak + 1;
+    }
+  }
+  const decrementBreak = () => {
+    if (varBreak > 1 && !isRunning) {
+      setBreak(varBreak - 1);
+      initialBreak = varBreak - 1;
+    }
+  }
+  const incrementSession = () => {
+    if (varSession < 60 && !isRunning) {
+      setSession(varSession + 1);
+      setTimeLeft((prevTimeLeft) => prevTimeLeft + 60);
+      initialTimeLeft = timeLeft;
+    }
+  }
+  const decrementSession = () => {
+    if (varSession > 1 && !isRunning) {
+      setSession(varSession - 1);
+      setTimeLeft((prevTimeLeft) => prevTimeLeft - 60);
+      initialTimeLeft = timeLeft;
+    }
+  }
+
+  const formatTime = (seconds) => {
+    const minutos = Math.floor(seconds / 60);
+    const segundos = seconds % 60;
+    return `${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
+  };
+
+  const startStopClock = () => {
+    setIsRunning(!isRunning);
+  };
+
+  const reset = () => {
+    setBreak(5);
+    setSession(initialSession);
+    setIsRunning(false)
+    //clearInterval(intervalId);
+    setTitleTimer('Session');
+    setTimeLeft(initialSession * 60);
+  }
+
+  useEffect(() => {
+    let countdown;
+
+    if (isRunning) {
+      countdown = setInterval(() => {
+        setTimeLeft(prevTime => {
+          if (prevTime === 0) {
+            clearInterval(countdown);
+            if (titleTimer === 'Session') {
+              setTitleTimer('Break');
+              setTimeLeft(initialBreak * 60);
+            } else {
+              setTitleTimer('Session');
+              setTimeLeft(initialTimeLeft);
+            }
+
+            return prevTime
+          } else {
+            return prevTime - 10;
+          }
+        })
+      }, 1000);
+    } else {
+      clearInterval(countdown);
+    }
+
+    return () => clearInterval(countdown);
+  }, [isRunning, titleTimer])
+
+  /*const runClock = useCallback(() => {
+    const id = setInterval(() => {
+      setTimeLeft((prevTimeLeft) => {
+        if (prevTimeLeft > 0) {
+          return prevTimeLeft - 10
+        } else {
+          clearInterval(id);
+          if (titleTimer === 'Session') {
+            setTitleTimer('Break');
+            setTimeLeft(initialBreak * 60);
+          } else {
+            setTitleTimer('Session');
+            setTimeLeft(initialTimeLeft);
+          }
+          return prevTimeLeft;
+        }
+      });
+    }, 1000);
+    console.log(`id: ${id}`);
+    setIntervalId(id);
+  }, [titleTimer]);
+  
+  useEffect(() => {
+    if (isRunning) {
+      runClock();
+    } else {
+      clearInterval(intervalId);
+      console.log(`clearInterval: ${intervalId}`);
+    }
+    return () => clearInterval(intervalId);
+  }, [isRunning, intervalId, runClock]);
+
+  // useEffect para iniciar automáticamente el cronómetro al cargar el componente
+  useEffect(() => {
+    if (isRunning) {
+      runClock();
+    }
+  }, [isRunning, runClock]);*/
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h1>25+5 Clock</h1>
+      <div id='labels'>
+        <div id='break-label'>
+          <span>Break Length</span>
+          <div className='label-buttons'>
+            <button id='break-decrement' onClick={decrementBreak}>-</button>
+            <span id='break-length'>{varBreak}</span>
+            <button id='break-increment' onClick={incrementBreak}>+</button>
+          </div>
+        </div>
+        <div id='session-label'>
+          <span>Session Length</span>
+          <div className='label-buttons'>
+            <button id='session-decrement' onClick={decrementSession}>-</button>
+            <span id='session-length'>{varSession}</span>
+            <button id='session-increment' onClick={incrementSession}>+</button>
+          </div>
+        </div>
+      </div>
+      <div id='timer-label'>
+        <span>{titleTimer}</span>
+        <div className='timer-container'>
+          <div id='timer-buttons'>
+            <button id='start_stop' onClick={startStopClock}>{isRunning ? 'Stop' : 'Start'}</button>
+            <button id='reset' onClick={reset}>Reset</button>
+          </div>
+          <span id='time-left'>{formatTime(timeLeft)}</span>
+        </div>
+      </div>
+      <h2>Designed and Coded By <span>BERNARDO BASALDUA</span></h2>
     </div>
   );
 }
 
 export default App;
+
+
+/*if (prevTimeLeft <= 0) 
+  // Temporizador actual ha llegado a cero, cambia al siguiente
+  clearInterval(id);
+  if (titleTimer === 'Session') {
+    setTitleTimer('Break');
+    setTimeLeft(initialBreak * 60);
+  } else {
+    setTitleTimer('Session');
+    setTimeLeft(initialTimeLeft);
+  }
+    runClock();
+    //return prevTimeLeft
+  } else {
+    console.log(`prevTimeLeft: ${prevTimeLeft}, timeLeft: ${timeLeft}`);
+    return prevTimeLeft - 10;
+}*/
