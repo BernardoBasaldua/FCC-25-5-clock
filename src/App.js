@@ -1,19 +1,22 @@
 import './App.css';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 let initialBreak = 5;
-let initialSession = 1;
-//let initialStartStop = 'Start';
+let initialSession = 25;
 let initialTimeLeft = initialSession * 60;
 
 function App() {
   const[varBreak, setBreak] = useState(initialBreak);
   const[varSession, setSession] = useState(initialSession);
-  //const[startStop, setStartStop] = useState(initialStartStop);
   const [isRunning, setIsRunning] = useState(false);
   const[titleTimer, setTitleTimer] = useState('Session');
   const[timeLeft, setTimeLeft] = useState(initialTimeLeft);
-  //const [intervalId, setIntervalId] = useState(null);
+
+  const audioRef = useRef(null);
+
+  const playSound = () => {
+    audioRef.current.play();
+  };
 
   const incrementBreak = () => {
     if (varBreak < 60 && !isRunning) {
@@ -31,14 +34,14 @@ function App() {
     if (varSession < 60 && !isRunning) {
       setSession(varSession + 1);
       setTimeLeft((prevTimeLeft) => prevTimeLeft + 60);
-      initialTimeLeft = timeLeft;
+      initialTimeLeft = timeLeft + 60;
     }
   }
   const decrementSession = () => {
     if (varSession > 1 && !isRunning) {
       setSession(varSession - 1);
       setTimeLeft((prevTimeLeft) => prevTimeLeft - 60);
-      initialTimeLeft = timeLeft;
+      initialTimeLeft = timeLeft - 60;
     }
   }
 
@@ -54,11 +57,12 @@ function App() {
 
   const reset = () => {
     setBreak(5);
-    setSession(initialSession);
+    setSession(25);
     setIsRunning(false)
-    //clearInterval(intervalId);
     setTitleTimer('Session');
-    setTimeLeft(initialSession * 60);
+    setTimeLeft(25 * 60);
+    audioRef.current.pause();
+    audioRef.current.currentTime = 0;
   }
 
   useEffect(() => {
@@ -68,6 +72,7 @@ function App() {
       countdown = setInterval(() => {
         setTimeLeft(prevTime => {
           if (prevTime === 0) {
+            playSound();
             clearInterval(countdown);
             if (titleTimer === 'Session') {
               setTitleTimer('Break');
@@ -79,7 +84,7 @@ function App() {
 
             return prevTime
           } else {
-            return prevTime - 10;
+            return prevTime - 1;
           }
         })
       }, 1000);
@@ -89,45 +94,6 @@ function App() {
 
     return () => clearInterval(countdown);
   }, [isRunning, titleTimer])
-
-  /*const runClock = useCallback(() => {
-    const id = setInterval(() => {
-      setTimeLeft((prevTimeLeft) => {
-        if (prevTimeLeft > 0) {
-          return prevTimeLeft - 10
-        } else {
-          clearInterval(id);
-          if (titleTimer === 'Session') {
-            setTitleTimer('Break');
-            setTimeLeft(initialBreak * 60);
-          } else {
-            setTitleTimer('Session');
-            setTimeLeft(initialTimeLeft);
-          }
-          return prevTimeLeft;
-        }
-      });
-    }, 1000);
-    console.log(`id: ${id}`);
-    setIntervalId(id);
-  }, [titleTimer]);
-  
-  useEffect(() => {
-    if (isRunning) {
-      runClock();
-    } else {
-      clearInterval(intervalId);
-      console.log(`clearInterval: ${intervalId}`);
-    }
-    return () => clearInterval(intervalId);
-  }, [isRunning, intervalId, runClock]);
-
-  // useEffect para iniciar automáticamente el cronómetro al cargar el componente
-  useEffect(() => {
-    if (isRunning) {
-      runClock();
-    }
-  }, [isRunning, runClock]);*/
 
   return (
     <div className="App">
@@ -151,36 +117,19 @@ function App() {
         </div>
       </div>
       <div id='timer-label'>
-        <span>{titleTimer}</span>
+        {titleTimer}
         <div className='timer-container'>
           <div id='timer-buttons'>
             <button id='start_stop' onClick={startStopClock}>{isRunning ? 'Stop' : 'Start'}</button>
             <button id='reset' onClick={reset}>Reset</button>
           </div>
-          <span id='time-left'>{formatTime(timeLeft)}</span>
+          <div id='time-left'>{formatTime(timeLeft)}</div>
         </div>
       </div>
       <h2>Designed and Coded By <span>BERNARDO BASALDUA</span></h2>
+      <audio id="beep" ref={audioRef} src="https://cdn.freecodecamp.org/testable-projects-fcc/audio/BeepSound.wav"></audio>
     </div>
   );
 }
 
 export default App;
-
-
-/*if (prevTimeLeft <= 0) 
-  // Temporizador actual ha llegado a cero, cambia al siguiente
-  clearInterval(id);
-  if (titleTimer === 'Session') {
-    setTitleTimer('Break');
-    setTimeLeft(initialBreak * 60);
-  } else {
-    setTitleTimer('Session');
-    setTimeLeft(initialTimeLeft);
-  }
-    runClock();
-    //return prevTimeLeft
-  } else {
-    console.log(`prevTimeLeft: ${prevTimeLeft}, timeLeft: ${timeLeft}`);
-    return prevTimeLeft - 10;
-}*/
